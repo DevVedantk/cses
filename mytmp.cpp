@@ -23,8 +23,25 @@ signed main(){
     int t;
     cin >> t;
     while(t-- >0){
-       
+        int n,k;
+        cin >> n >> k;
+    
+        int cnt=0;
+        vector<int>arr(n);
+        for(int i=0;i<n;i++) cin >> arr[i];
 
+        int j=0;
+
+        while(j<n){
+            int ele=0;
+          while(arr[j]==0 && ele<k){
+            j++;
+            ele++;
+          }
+          if(ele==k) cnt++;
+          j++;
+        }
+       cout << cnt << endl;
 
     }  
 }
