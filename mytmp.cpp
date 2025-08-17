@@ -2,46 +2,42 @@
 #define int long long
 #define endl '\n'
 
-
 using namespace std;
-const int INF=1e18;
-const int MOD=1e9+7;
 
-int findpow(int a,int b){
-    if(b==0) return 1;
-    int half=findpow(a,b/2);
-    if(b%2==0) return half*half;
-    else return a*half*half; 
+int ans=0;
+int maxproduct=-1e18;
+
+void solve(string& R,int n,int tight,int leading_zeros,int num,int product){
+      if(n==0){
+        if(maxproduct<product){
+          maxproduct=product;
+          ans=num;
+        }
+        return;
+      }
+
+     int upperB=tight?(R[R.size()-n]-'0'):9;
+
+     for(int deg=0;deg<=upperB;deg++){
+      int newleading=leading_zeros&(deg==0);
+
+      if(newleading) solve(R,n-1,0,newleading,num*10+deg,product*deg);
+      else  solve(R,n-1,tight&(deg==upperB),newleading,num*10+deg,product*deg);
+     }
+
 }
-
-int findceil(int a,int b){
-    return (a+b-1)/b;
-}
-
 
 signed main(){
-    int t;
-    cin >> t;
-    while(t-- >0){
-        int n,k;
-        cin >> n >> k;
+    ios::sync_with_stdio(false); cin.tie(NULL);
     
-        int cnt=0;
-        vector<int>arr(n);
-        for(int i=0;i<n;i++) cin >> arr[i];
+    int a,b;
+    cin >> a >> b;
 
-        int j=0;
+    string L=to_string(a-1);
+    string R=to_string(b);
 
-        while(j<n){
-            int ele=0;
-          while(arr[j]==0 && ele<k){
-            j++;
-            ele++;
-          }
-          if(ele==k) cnt++;
-          j++;
-        }
-       cout << cnt << endl;
+    solve(R,R.size(),1,1,0,1);
+     solve(L,L.size(),1,1,0,1);
 
-    }  
+     cout << ans << endl;
 }
