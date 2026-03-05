@@ -1,1 +1,107 @@
-#include <bits/stdc++.h> #define int long long #define endl '\n' using namespace std; struct Node{ int sum=0; Node* left=NULL; Node* right=NULL; }; Node* buildt(int l,int r){ if(l==r){ Node* leaf=new Node(); leaf->sum=0; return leaf; } int mid=(l+r)/2; Node* node=new Node(); node->left=buildt(l,mid); node->right=buildt(mid+1,r); node->sum=(node->left->sum + node->right->sum); return node; } Node* update(int l,int r,Node* past,int idx){ if(l==r){ Node* leaf=new Node(); leaf->sum+=1; return leaf; } int mid=(l+r)/2; Node* node=new Node(); if(idx<=mid){ //go left; node->left=update(l,mid,past->left,idx); node->right=past->right; node->sum=node->left->sum+node->right->sum; return node; } else{ //go right node->right=update(mid+1,r,past->right,idx); node->left=past->left; node->sum=node->left->sum+node->right->sum; return node; } } int query(int st,int en,int l,int r,Node* node){ if(st>r || l>en) return 0; if(l>=st && r<=en) return node->sum; int mid=(l+r)/2; int left=query(st,en,l,mid,node->left); int right=query(st,en,mid+1,r,node->right); return left+right; } signed main(){ ios::sync_with_stdio(false); cin.tie(NULL); int n,q; cin >> n >> q; vector<int>arr(n); map<int,int>mp; for(int i=0;i<n;i++){ cin >> arr[i]; mp[arr[i]]; } int que[q][4]; for(int i=0;i<q;i++){ int a,b,c,d; cin >> a >> b >> c >> d; que[i][0]=a; que[i][1]=b; que[i][2]=c; que[i][3]=d; mp[c]; mp[d]; } int cnt=0; for(auto &ele:mp){ ele.second=cnt; cnt++; } for(int i=0;i<n;i++) arr[i]=mp[arr[i]]; vector<Node*>list; Node* root=buildt(0,cnt-1); list.push_back(root); for(int i=0;i<n;i++){ int size=list.size(); Node* new_root=update(0,cnt-1,list[size-1],arr[i]); list.push_back(new_root); } // for(auto ele:mp) cout << ele.first << " " << ele.second << endl; for(int i=0;i<q;i++){ int a=que[i][0],b=que[i][1],c=que[i][2],d=que[i][3]; a--; b--; c=mp[c]; d=mp[d]; int total=(b-a+1); //complete range int ele1=query(d+1,cnt-1,0,cnt-1,list[b+1]); int ele2=query(d+1,cnt-1,0,cnt-1,list[a]); cout << c << " " <<d << endl; cout << "ele1 " << ele1 << " " << "ele2 " <<ele2 << endl; total-=(ele1-ele2); ele1=query(0,c-1,0,cnt-1,list[b+1]); ele2=query(0,c-1,0,cnt-1,list[a]); cout <<"phase2 "; cout << "ele1 " << ele1 << " " << "ele2 " <<ele2 << endl; total-=(ele1-ele2); cout << total << endl; } // cout << "hello"; }
+#include <bits/stdc++.h>
+#define int long long
+#define endl '\n'
+
+using namespace std;
+
+vector<int>start;
+vector<int>ending;
+
+int timer=0;
+void euler_tour(int node,int parent,vector<vector<int>>&adj){
+       start[node]=timer++;
+       
+       for(int child:adj[node]){
+           if(child==parent) continue;
+           euler_tour(child,node,adj);
+       }
+       
+       ending[node]=timer;
+}
+
+vector<int>sgt;
+
+void buildt(int i,int l,int r,vector<int>&arr){
+    if(l==r){
+        sgt[i]=arr[l];
+        return;
+    }
+    
+    int mid=(l+r)/2;
+    buildt(2*i+1,l,mid,arr);
+    buildt(2*i+2,mid+1,r,arr);
+    sgt[i]=(sgt[2*i+1]+sgt[2*i+2]);
+}
+
+void update(int i,int l,int r,int idx,int val){
+    if(l==r){
+        sgt[i]=val;
+        return;
+    }
+    
+    int mid=(l+r)/2;
+    if(idx<=mid) update(2*i+1,l,mid,idx,val);
+    else update(2*i+2,mid+1,r,idx,val);
+     sgt[i]=(sgt[2*i+1]+sgt[2*i+2]);
+}
+
+int query(int i,int l,int r,int st,int en){
+     if(st>r || l>en) return 0;
+     if(l>=st && r<=en) return sgt[i];
+     int mid=(l+r)/2;
+     
+     int left=query(2*i+1,l,mid,st,en);
+     int right=query(2*i+2,mid+1,r,st,en);
+     
+     return (left+right);
+}
+
+signed main(){
+   
+    
+    int n,q;
+    cin >> n >> q;
+    vector<int>values(n);
+    for(int i=0;i<n;i++) cin >> values[i];
+    
+    vector<vector<int>>adj(n);
+    for(int i=0;i<n-1;i++){
+        int a,b;
+        cin >> a >> b;
+        // 0th node starting
+        a--;b--;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    }
+    start.assign(n,0);
+    ending.assign(n,0);
+    
+    euler_tour(0,-1,adj);
+    
+    vector<int>euler_arr(timer);
+    
+    for(int i=0;i<n;i++){
+        euler_arr[start[i]]=values[i];
+    }
+    
+    sgt.assign(4*n,0);
+    buildt(0,0,n-1,euler_arr);
+    
+    for(int i=0;i<q;i++){
+        int t;
+        cin >> t;
+        if(t==1){
+            int idx,val;
+            cin >> idx >> val;
+            idx--;
+            update(0,0,n-1,start[idx],val);
+        } else{
+            int node;
+            cin >> node;
+            node--; // 0 based
+            int l=start[node] , r=ending[node]-1;
+            
+            cout << query(0,0,n-1,l,r) << endl; 
+        }
+    }
+}
